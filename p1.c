@@ -63,9 +63,18 @@ void compare( bool s, bool d, bool u, char* file1, char* file2 ) {
     if( u )
       upper( buf1, buf2 );
 
-    for( pos = 0; pos < min( read_ret1, read_ret2 ); pos++ ) {
-      if( buf1[pos] != buf2[pos] )
-        printf("Byte %d\n", acc + pos + 1);
+
+    if( s ) {
+      for( pos = 0; pos < min( read_ret1, read_ret2 ); pos++ ) {
+        if( buf1[pos] != buf2[pos] )
+          printf("Byte %d    File1:%c	File2:%c\n", acc + pos + 1, buf1[pos], buf2[pos]);
+      }
+    }
+    if( d ) {
+      if( read_ret1 != read_ret2 ) {
+        printf("The files are of different length\n");
+        exit( 0 );
+      }
     }
     acc += min( read_ret1, read_ret2 );
     read_ret1 = read( fd1, buf1, 1024 );
