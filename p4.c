@@ -20,13 +20,13 @@ int main( int argc, char *argv[])
   char * s;
   char * cwd;
   cwd = getcwd(0,0);
-  char * oldpath = (char**) malloc( strlen( cwd  ) + 256 );
+  char * oldpath = (char*) malloc( strlen( cwd  ) + 256 );
   if( strlen( cwd ) > strlen( argv[ argc - 1 ] ) )
-    s = (char**) malloc( strlen( cwd ) + strlen( argv[ argc - 1] ) + 1 );
+    s = (char*) malloc( strlen( cwd ) + strlen( argv[ argc - 1] ) + 1 );
   else
-    s = (char**) malloc( strlen( argv[ argc - 1 ] ) );
+    s = (char*) malloc( strlen( argv[ argc - 1 ] ) );
   s[0] = '\0';
-  char * newpath = (char**) malloc( strlen( s ) + 256 );
+  char * newpath = (char*) malloc( strlen( s ) + 256 );
   if( argv[ argc - 1][0] != '/' ) 
     strcpy( s, cwd );
   strcat( s, "/" );
@@ -44,7 +44,6 @@ int main( int argc, char *argv[])
     strcat( oldpath, "/");
     strcat( oldpath, argv[i]);
     strcpy( newpath, s );
-    strcat( newpath, "/");
     strcat( newpath, argv[i]);
     retval = link( oldpath, newpath);
     if( retval != 0 ) {
