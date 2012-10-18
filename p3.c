@@ -22,7 +22,6 @@ int main( int argc, char* argv[] ) {
     print_usage( 1 );
 
   signal( SIGALRM, alarm_handler );
-
   alarm( atoi( argv[2] ) );
   cpid = fork();
   if( cpid == -1 ) {
