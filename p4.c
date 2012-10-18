@@ -41,16 +41,17 @@ int main( int argc, char *argv[])
     strcpy( newpath, s );
     strcat( newpath, "/");
     strcat( newpath, argv[i]);
-   // printf("%s\n%s\n", oldpath, newpath);
     retval = link( oldpath, newpath);
     if( retval != 0 ) {
-       printf("Problem creating new file\n");
-       exit(1);
-    }
-    retval = unlink( oldpath );
-    if( retval != 0 ) {
-    printf("Problem deleting old file\n");
-    exit(1);
+       if( errno == 2 )
+         printf("No file '%s' found in current directory\n", argv[i] );
+       else
+         printf("Problem creating new link\n");
+      } else {
+      retval = unlink( oldpath );
+      if( retval != 0 ) {
+        printf("Problem deleting old file\n");
+      }
     }
   }
   return 0;
