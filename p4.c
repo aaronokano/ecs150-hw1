@@ -17,12 +17,19 @@ int main( int argc, char *argv[])
 {
   int retval;
   int i;
-  char * s = (char**) malloc( strlen( argv[ argc - 1 ] ) );
+  char * s;
   char * cwd;
   cwd = getcwd(0,0);
   char * oldpath = (char**) malloc( strlen( cwd  ) + 256 );
-  char * newpath = (char**) malloc( strlen( s ) + 256 );
+  //char * newpath = (char**) malloc( strlen( s ) + 256 );
+  if( strlen( cwd ) > strlen( argv[ argc - 1 ] ) )
+    s = (char**) malloc( strlen( cwd ) + strlen( argv[ argc - 1] ) + 1 );
+  else
+    s = (char**) malloc( strlen( argv[ argc - 1 ] ) );
   s[0] = '\0';
+  char * newpath = (char**) malloc( strlen( s ) + 256 );
+  if( argv[ argc - 1][0] != '/' ) 
+    strcpy( s, cwd );
   strcat( s, "/" );
   char * tok;
   tok = strtok( argv[ argc - 1 ] ,"/");
