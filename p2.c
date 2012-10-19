@@ -138,7 +138,7 @@ int main( int argc, char *argv[] ) {
     fatal_error( "There was an error creating the pipe!", 1 );
 
   // Write to pipe
-  if( write( pfd1[1], buf, strlen( buf ) ) == -1 )
+  if( write( pfd1[1], buf, strlen( buf ) + 1 ) == -1 )
     fatal_error( "Failure to write to pipe!", 1 );
 
   // We don't need to write to the pipe after this, so close the write end
