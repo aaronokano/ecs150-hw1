@@ -127,7 +127,8 @@ int main( int argc, char *argv[] ) {
   printf( "Enter a string: " );
   getline( &buf, &size, stdin );
   char *c = strchr( buf, '\n' );
-  *c = '\0';
+  if( c != NULL )
+    *c = '\0';
   printf( "%s\n", buf );
 
   // Set up pipes
