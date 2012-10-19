@@ -17,6 +17,17 @@ void upper( char *mystring ) {
   }
 }
 
+void compare( char *a, char *b ) {
+  int i;
+  int length = strlen( a );
+  if( strlen( b ) < length )
+    length = strlen( b );
+  for( i = 0; i < length; i++ ) {
+    if( a[i] != b[i] )
+      printf("Character %d differs:  String 1: %c, String2 %c", i+1, a[i], b[i]);
+  }
+}
+
 void process_three( int fd1[], int fd2[] ) {
   char buf3[1024];
   close( fd1[1] );
@@ -77,6 +88,8 @@ void process_two( int fd1[], int fd2[] ) {
     strncat( buf2, buf4, 1024 );
     write( STDOUT_FILENO, buf2, strlen( buf2 ) );
     write( STDOUT_FILENO, "\n", 1 );
+    write( fd2[1], buf2, strlen( buf2 ) );
+    close( fd2[1] );
     printf( "Terminating process 2\n" );
     exit( 0 );
   }
@@ -90,6 +103,7 @@ int main( int argc, char *argv[] ) {
 
   pid_t child1_pid;
   char buf[1024];
+  char final_buf[2048];
 
   printf( "Enter a string: " );
   scanf( "%s", buf );
@@ -107,8 +121,6 @@ int main( int argc, char *argv[] ) {
 
   // We don't need to write to the pipe after this, so close the write end
   close( pipe11_fd[1] );
-  // We also never need to write to this
-  close( pipe12_fd[1] );
 
   // Create process two
   child1_pid = fork();
@@ -119,6 +131,10 @@ int main( int argc, char *argv[] ) {
   }
   else {
     wait( NULL );
+    if( read( pipe12_fd[0], final_buf, 2048 ) == -1 )
+      fatal_error("Failed to read from pipe!", 1 );
+    compare( buf, final_buf );
+    printf("Terminating process 1\n");
     exit( 0 );
   }
   return 0;
