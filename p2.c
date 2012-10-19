@@ -19,12 +19,22 @@ void upper( char *mystring ) {
 
 void compare( char *a, char *b ) {
   int i;
-  int length = strlen( a );
-  if( strlen( b ) < length )
-    length = strlen( b );
-  for( i = 0; i < length; i++ ) {
+  char *longer = b;
+  int short_length = strlen( a );
+  int long_length = strlen( b );
+  if( strlen( b ) < short_length ) {
+    short_length = strlen( b );
+    long_length = strlen( a );
+    longer = a;
+  }
+  for( i = 0; i < short_length; i++ ) {
     if( a[i] != b[i] )
       printf("Character %d differs:  String 1: %c, String2 %c", i+1, a[i], b[i]);
+  }
+  if( short_length != long_length ) {
+    printf( "The strings are of different length\n"
+            "The longer string is %d characters longer, and ends with %s\n",
+            strlen( longer + i ), longer + i );
   }
 }
 
@@ -49,12 +59,16 @@ void process_three( int fd1[], int fd2[] ) {
 }
 
 void process_two( int fd1[], int fd2[] ) {
-  int i, pipe21_fd[2], pipe22_fd[2];
+  int i, pfd1[2], pfd2[2];
   char buf2[2048], rev_str[1024], tmp;
   pid_t child2_pid;
+
+  close( fd2[0] );
+  close( fd1[1] );
   if( read( fd1[0], buf2, 1024 ) == -1 )
     fatal_error( "Read from pipe failed!", 1 );
   close( fd1[0] );
+
   // Reverse the string
   for( i = strlen( buf2 ) - 1; i >= 0; i-- ) {
     rev_str[ strlen( buf2 ) - i - 1 ] = buf2[ i ];
@@ -62,33 +76,37 @@ void process_two( int fd1[], int fd2[] ) {
   write( STDOUT_FILENO, rev_str, strlen( rev_str ) );
   write( STDOUT_FILENO, "\n", 1 );
   
-  if( pipe( pipe21_fd ) == -1 )
+  if( pipe( pfd1 ) == -1 )
     fatal_error( "There was an error creating the pipe!", 1 );
-  if( pipe( pipe22_fd ) == -1 )
+  if( pipe( pfd2 ) == -1 )
     fatal_error( "There was an error creating the pipe!", 1 );
 
-  if( write( pipe21_fd[1], rev_str, strlen( rev_str ) ) == -1 )
+  if( write( pfd1[1], rev_str, strlen( rev_str ) ) == -1 )
     fatal_error( "Failed to write to pipe!", 1 );
-  close( pipe21_fd[1] );
+  close( pfd1[1] );
 
   // Create process three
   child2_pid = fork();
   if( child2_pid == -1 )
     fatal_error( "The process failed to fork!", 2 );
   else if( child2_pid == 0 ) {
-    process_three( pipe21_fd, pipe22_fd );
+    process_three( pfd1, pfd2 );
   }
   else {
-    close( pipe21_fd[0] );
-    close( pipe22_fd[1] );
     char buf4[1024];
+
+    close( pfd1[0] );
+    close( pfd2[1] );
+
     wait( NULL );
-    read( pipe22_fd[0], buf4, 1024 );
-    close( pipe22_fd[0] );
+
+    read( pfd2[0], buf4, 1024 );
+    close( pfd2[0] );
+
     strncat( buf2, buf4, 1024 );
-    write( STDOUT_FILENO, buf2, strlen( buf2 ) );
-    write( STDOUT_FILENO, "\n", 1 );
-    write( fd2[1], buf2, strlen( buf2 ) );
+    printf("%s\n", buf2);
+    if( write( fd2[1], buf2, strlen( buf2 ) ) == -1 )
+      fatal_error("Failed to write to pipe!", 1);
     close( fd2[1] );
     printf( "Terminating process 2\n" );
     exit( 0 );
@@ -98,8 +116,8 @@ void process_two( int fd1[], int fd2[] ) {
 int main( int argc, char *argv[] ) {
   // One pipe for each direction, even though they're technically
   // bidirectional, this is because some things in life suck
-  int pipe11_fd[2];
-  int pipe12_fd[2];
+  int pfd1[2];
+  int pfd2[2];
 
   pid_t child1_pid;
   char buf[1024];
@@ -110,28 +128,28 @@ int main( int argc, char *argv[] ) {
   printf( "%s\n", buf );
 
   // Set up pipes
-  if( pipe( pipe11_fd ) == -1 )
+  if( pipe( pfd1 ) == -1 )
     fatal_error( "There was an error creating the pipe!", 1 );
-  if( pipe( pipe12_fd ) == -1 )
+  if( pipe( pfd2 ) == -1 )
     fatal_error( "There was an error creating the pipe!", 1 );
 
   // Write to pipe
-  if( write( pipe11_fd[1], buf, strlen( buf ) ) == -1 )
+  if( write( pfd1[1], buf, strlen( buf ) ) == -1 )
     fatal_error( "Failure to write to pipe!", 1 );
 
   // We don't need to write to the pipe after this, so close the write end
-  close( pipe11_fd[1] );
+  close( pfd1[1] );
 
   // Create process two
   child1_pid = fork();
   if( child1_pid == -1 )
     fatal_error( "The process failed to fork!", 2 );
   else if( child1_pid == 0 ) {
-    process_two( pipe11_fd, pipe12_fd );
+    process_two( pfd1, pfd2 );
   }
   else {
     wait( NULL );
-    if( read( pipe12_fd[0], final_buf, 2048 ) == -1 )
+    if( read( pfd2[0], final_buf, 2048 ) == -1 )
       fatal_error("Failed to read from pipe!", 1 );
     compare( buf, final_buf );
     printf("Terminating process 1\n");
