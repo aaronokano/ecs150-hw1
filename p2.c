@@ -52,7 +52,7 @@ void process_three( int fd1[], int fd2[] ) {
   write( STDOUT_FILENO, buf3, strlen( buf3 ) );
   write( STDOUT_FILENO, "\n", 1 );
 
-  write( fd2[1], buf3, strlen( buf3 ) );
+  write( fd2[1], buf3, strlen( buf3 ) + 1 );
   close( fd2[1] );
   printf("Terminating process 3\n");
   exit( 0 );
@@ -81,7 +81,7 @@ void process_two( int fd1[], int fd2[] ) {
   if( pipe( pfd2 ) == -1 )
     fatal_error( "There was an error creating the pipe!", 1 );
 
-  if( write( pfd1[1], rev_str, strlen( rev_str ) ) == -1 )
+  if( write( pfd1[1], rev_str, strlen( rev_str ) + 1 ) == -1 )
     fatal_error( "Failed to write to pipe!", 1 );
   close( pfd1[1] );
 
@@ -105,7 +105,7 @@ void process_two( int fd1[], int fd2[] ) {
 
     strncat( buf2, buf4, 1024 );
     printf("%s\n", buf2);
-    if( write( fd2[1], buf2, strlen( buf2 ) ) == -1 )
+    if( write( fd2[1], buf2, strlen( buf2 ) + 1 ) == -1 )
       fatal_error("Failed to write to pipe!", 1);
     close( fd2[1] );
     printf( "Terminating process 2\n" );
