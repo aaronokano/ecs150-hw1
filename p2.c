@@ -120,11 +120,14 @@ int main( int argc, char *argv[] ) {
   int pfd2[2];
 
   pid_t child1_pid;
-  char buf[1024];
+  size_t size = 1024;
+  char *buf = (char*) malloc( size );
   char final_buf[2048];
 
   printf( "Enter a string: " );
-  scanf( "%s", buf );
+  getline( &buf, &size, stdin );
+  char *c = strchr( buf, '\n' );
+  *c = '\0';
   printf( "%s\n", buf );
 
   // Set up pipes
